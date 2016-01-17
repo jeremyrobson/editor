@@ -2,15 +2,101 @@
 <html>
 <head>
 <style>
-* { margin:0; padding:0; user-select: none; -webkit-user-select: none; -moz-user-select: none;}
-html, body { width:100%; height:100%; }
-canvas { display:block; }
+* {
+    padding: 0;
+    margin: 0;
+}
+body {
+    background-color: #cccccc;   
+}
+.container {
+    float: left;
+}
+div {
+    border: 2px solid black;
+}
+li {
+    list-style: none;
+}
 </style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 <script src="editor.js"></script>
+    
 </head>
 <body>
-<canvas id="canvas" width="512" height="512"></canvas>
-<input type="file" id="load"></input>
-<button id="save">save</button>
+
+<div id="canvasdiv" class="container">
+    <canvas id="canvas" width="640" height="480"></canvas>
+</div>
+<div id="drawingdiv" class="container">
+    <h2>Drawing</h2>
+    <div id="layerdiv">
+        <strong>Selected Layer: </strong>
+        <select id="layerselect" name="layerselect">
+            <option name="layer" id="layer0" value="0">Boundary</option>
+            <option name="layer" id="layer1" value="1" selected="selected">Bottom Layer</option>
+            <option name="layer" id="layer2" value="2">Top Layer</option>
+        </select>
+        <ul>
+            <li><input type="radio" name="tool" id="tool0" value="pen" />Pen</li>
+            <li><input type="radio" name="tool" id="tool2" value="brush" />Brush</li>
+            <li><input type="radio" name="tool" id="tool3" value="eraser" />Eraser</li>
+        </ul>
+    </div>
+    <div id="sizediv">
+        <label for="size">
+            <input type="range" id="size" min="1" max="32" value="5" class="sizeselector" />
+            Size:
+            <input type="text" id="sizetext" value="5" maxlength="2"/>
+        </label>
+    </div>
+    <div id="pickerdiv">
+        <ul>
+            <li>
+                <label for="colorR">
+                    <input type="range" id="colorR" min="0" max="255" class="colorselector" />
+                    <strong>R:</strong>
+                    <input type="text" id="colorRText" value="128" maxlength="3" />
+                </label>
+            </li>
+            <li>
+                <label for="colorG">
+                    <input type="range" id="colorG" min="0" max="255" class="colorselector" />
+                    <strong>G:</strong>
+                    <input type="text" id="colorGText" value="128" maxlength="3" />
+                </label>
+            </li>
+            <li>
+                <label for="colorB">
+                    <input type="range" id="colorB" min="0" max="255" class="colorselector" />
+                    <strong>B:</strong>
+                    <input type="text" id="colorBText" value="128" maxlength="3" />
+                </label>
+            </li>
+            <li>
+                <label for="colorA">
+                    <input type="range" id="colorA" min="0" max="255" class="colorselector" value="255" />
+                    <strong>A:</strong>
+                    <input type="text" id="colorAText" value="255" maxlength="3" />
+                </label>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="viewdiv" class="container">
+    <h2>View</h2>
+    <ul>
+        <li><input type="checkbox" id="viewlayer0" value="Layer 0" class="viewlayer" />Boundary</li>
+        <li><input type="checkbox" id="viewlayer1" value="Layer 1" class="viewlayer" />Bottom Layer</li>
+        <li><input type="checkbox" id="viewlayer2" value="Layer 2" class="viewlayer" />Top Layer</li>
+    </ul>
+</div>
+<div id="filediv" class="container">
+    <input type="file" id="load"></input>
+    <button id="save">save</button>
+</div>
+
 </body>
+    
 </html>

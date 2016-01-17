@@ -1,10 +1,7 @@
-var canvas, context;
-var saveButton, openButton;
+var canvas, context, buffer, bufferctx;
 var map;
-var colors = ["rgb(55,55,200)","rgb(55,155,255","rgb(205,205,55)","rgb(55,255,155)"];
-var drawing = false;
-var seltype = 3;
-var brushRadius = 4;
+var layer, tool, size, color, view;
+var mx, my, pressed;
 
 function clamp(n, max) {
     if (n < 0)
@@ -12,44 +9,6 @@ function clamp(n, max) {
     if (n > max)
         return max;
     return n;
-}
-
-function mouse_down(e) {
-    drawing = true;
-    mouse_move(e);
-}
-
-function mouse_up(e) {
-    drawing = false;
-}
-
-function mouse_move(e) {
-    var mousex = Math.floor(e.offsetX / 2);
-    var mousey = Math.floor(e.offsetY / 2);
-    if (drawing) {
-        var r = Math.floor(brushRadius / 2);
-        var mx, my;
-        for (var x=-r;x<=r;x++) {
-            for (var y=-r;y<=r;y++) {
-                if (Math.abs(x) + Math.abs(y) >= brushRadius)
-                    continue;
-                mx = clamp(mousex + x, 255);
-                my = clamp(mousey + y, 255);
-                map[mx][my] = seltype;
-                context.fillStyle = colors[seltype];
-                context.fillRect(mx*2,my*2,2,2);
-            }
-        }
-    }
-}
-
-function draw_map() {
-    for (var x=0;x<256;x++) {
-        for (var y=0;y<256;y++) {
-            context.fillStyle = colors[map[x][y]];
-            context.fillRect(x*2,y*2,2,2);
-        }
-    }
 }
 
 function load_map(u8) {
@@ -60,7 +19,7 @@ function load_map(u8) {
         map[x][y] = u8[i];
     }    
 
-    draw_map();
+    draw();
 }
 
 function save_map() {
@@ -90,26 +49,123 @@ function open_map() {
     reader.readAsArrayBuffer(openButton.files[0]);
 }
 
-function new_map() {
-    map = [];
-    for (var x=0;x<256;x++) {
-        map[x] = [];
-        for (var y=0;y<256;y++) {
-            map[x][y] = 0;
-        }
-    }
-    draw_map();
+function set_layer() {
+    layer = parseInt($("#layerselect").val()) - 1;
+    console.log(layer);
 }
 
-window.onload = function() {
+function set_color() {
+    var r = $("#colorR").val();
+    var g = $("#colorG").val();
+    var b = $("#colorB").val();
+    var a = $("#colorA").val();
+    var alpha = (a / 255).toFixed(2);
+    
+    $("#colorRText").val(r);
+    $("#colorGText").val(g);
+    $("#colorBText").val(b);
+    $("#colorAText").val(a);
+    
+    color = "rgba("+r+","+g+","+b+","+alpha+")";
+    $("#pickerdiv").css("background-color", color);
+    console.log("Color", color);
+}
+
+function set_size() {
+    size = $("#size").val();
+    $("#sizetext").val(size);
+    console.log("Size", size);
+    
+}
+
+function mouse_move(e) {
+    mx = e.offsetX;
+    my = e.offsetY;
+    
+    if (pressed) {
+        draw(bufferctx[layer]);
+        
+        context.drawImage(buffer[0], 0, 0);
+        context.drawImage(buffer[1], 0, 0);
+    }
+}
+
+function mouse_down(e) {
+    mouse_move(e);
+    pressed = true;
+}
+
+function mouse_up(e) {
+    mouse_move(e);
+    pressed = false;
+}
+
+function mouse_leave(e) {
+    pressed = false;   
+}
+
+function draw(ctx) {
+    ctx.fillStyle = color;
+    ctx.fillRect(mx-size/2, my-size/2, size, size);
+}
+
+$(document).ready(function() {
     canvas = document.getElementById("canvas");
+    context = canvas.getContext("2d");
+    
+    canvas.onmousemove = mouse_move;
     canvas.onmousedown = mouse_down;
     canvas.onmouseup = mouse_up;
-    canvas.onmousemove = mouse_move;
-    context = canvas.getContext("2d");
-    saveButton = document.getElementById("save");
-    saveButton.onclick = save_map;
-    openButton = document.getElementById("load");
-    openButton.onchange = open_map;
-    new_map();
-};
+    canvas.onmouseleave = mouse_leave;
+    
+    buffer = [
+        document.createElement("canvas"),
+        document.createElement("canvas")
+    ];
+    
+    buffer[0].width = 640;
+    buffer[0].height = 480;
+
+    buffer[1].width = 640;
+    buffer[1].height = 480;
+
+    bufferctx = [
+        buffer[0].getContext("2d"),
+        buffer[1].getContext("2d")  
+    ];
+    
+    layer = $("#layerselect").val();
+    $("#layer0").attr("checked", true);
+    $("#layerselect").change(function(e) {
+        set_layer(); 
+    });
+    
+    tool = 0;
+    $("#tool0").attr("checked", true);
+    
+    size = 1;
+    
+    $(".viewlayer").attr("checked", true);
+    
+    $(".colorselector").change(function(e) {
+       set_color();
+    });
+    
+    $(".sizeselector").change(function(e) {
+       set_size(); 
+    });
+    
+    set_color();
+    set_size();
+    
+    p = [];
+    for (var i=0; i<3; i++) {
+        p[i] = [];
+        for (var x=0;x<640;x++) {
+            p[i][x] = [];
+            for (var y=0;y<480;y++) {
+                p[i][x][y] = [0,0,0,255];
+            }
+        }
+    }
+});
